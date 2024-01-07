@@ -54,6 +54,37 @@ void ExceptionHandler(ExceptionType which) {
     DEBUG(dbgSys, "Received Exception " << which << " type: " << type << "\n");
 
     switch (which) {
+		case NoException:
+			return;
+		case PageFaultException:
+			DEBUG(dbgAddr, "Page Fault Exception, No valid translation found\n");
+			SysHalt();
+			break;
+		case ReadOnlyException:
+			DEBUG(dbgAddr, "Read Only Exception, Write attempted to page marked \"read-only\"\n");
+			SysHalt();
+			break;
+		case BusErrorException:
+			DEBUG(dbgAddr, "Bus Error Exception, Translation resulted in an invalid physical address\n");
+			SysHalt();
+			break;
+		case AddressErrorException:
+			DEBUG(dbgAddr, "Address Error Exception, Unaligned reference or one that was beyond the end of the address space\n");
+			SysHalt();
+			break;
+		case OverflowException:
+			DEBUG(dbgAddr, "Overflow Exception, Integer overflow in add or sub\n");
+			SysHalt();
+			break;
+		case IllegalInstrException:
+			DEBUG(dbgAddr, "Illegal Instruction Exception, Unimplemented or reserved instr\n");
+			SysHalt();
+			break;
+		case NumExceptionTypes:
+			DEBUG(dbgAddr, "Num Exception Types\n");
+			SysHalt();
+			break;
+			
         case SyscallException:
             switch (type) {
                 case SC_Halt:
