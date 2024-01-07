@@ -25,6 +25,21 @@ class SynchConsoleInput;
 class SynchConsoleOutput;
 class SynchDisk;
 
+// Added for project 2
+#include "bitmap.h"
+#include "stable.h"
+#include "ptable.h"
+
+class SynchConsoleInput;
+class SynchConsoleOutput;
+class SynchDisk;
+class Semaphore;
+
+Semaphore *addrLock;
+Bitmap *gPhysPageBitMap;
+STable *semTab;
+PTable *pTab;
+
 class Kernel {
   public:
     Kernel(int argc, char **argv);
