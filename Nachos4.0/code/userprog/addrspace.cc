@@ -132,57 +132,83 @@ AddrSpace::Load(char *fileName)
     	SwapHeader(&noffH);
     ASSERT(noffH.noffMagic == NOFFMAGIC);
 
-    // int addressSpaceSize = noffH.code.size + 
-    //                        noffH.initData.size + 
-    //                        noffH.uninitData.size + 
-    //                        noffH.readonlyData.size + 
-    //                        UserStackSize;
+    int addressSpaceSize =  noffH.code.size + 
+                            noffH.initData.size +
+                            noffH.uninitData.size +
+                            noffH.readonlyData.size +
+                            UserStackSize;	
 
-    // numPages = divRoundUp(addressSpaceSize, PageSize);
+    numPages = divRoundUp(addressSpaceSize, PageSize);
 
-    // // Enter critical sections (gPhysPageBitMap, mainMemory)
-    // kernel->addrLock->P();
-    // char* mainMemory = kernel->machine->mainMemory;
-    // // -- Allocate physical frames --
-    
-    // if (numPages > kernel->gPhysPageBitMap->NumClear()) {
-    //     cerr << "Not enough memory for address space: " << numPages << "\n";
-    //     numPages = 0;
-    //     delete executable;
-    //     kernel->addrLock->V();
-    //     return FALSE;
-    // }
+    // --------- Allocate physical pages for the address space ---------
+    // Lock the address space
+    kernel->addrLock->P();
+    char *main_mem = kernel->machine->mainMemory;
 
-    // pageTable = new TranslationEntry[numPages];
-    // for (int i = 0; i < numPages; i++) {
-    //     pageTable[i].virtualPage = i;
-    //     pageTable[i].physicalPage = kernel->gPhysPageBitMap->FindAndSet();
-    //     pageTable[i].valid = TRUE;
-    //     pageTable[i].use = FALSE;
-    //     pageTable[i].dirty = FALSE;
-    //     pageTable[i].readOnly = FALSE;
+    if (kernel->gPhysPageBitMap->NumClear() < numPages) {
+        cerr << "Not enough memory for the address space!\n";
+        numPages = 0;
+        kernel->addrLock->V();
+        delete executable;
+        return FALSE;
+    }
 
-    //     bzero(mainMemory + pageTable[i].physicalPage * PageSize, PageSize);
-    // }
+    pageTable = new TranslationEntry[numPages];
+    for (int i = 0; i < numPages; i++) {
+        pageTable[i].virtualPage = i;
+        pageTable[i].physicalPage = kernel->gPhysPageBitMap->FindAndSet();
+        pageTable[i].valid = TRUE;
+        pageTable[i].use = FALSE;
+        pageTable[i].dirty = FALSE;
+        pageTable[i].readOnly = FALSE;
 
-    // // -- Load code and data segments --
+        bzero(main_mem + pageTable[i].physicalPage * PageSize, PageSize);
+    }
 
-    // // Load into buffer
-    // int actualDataSize = noffH.code.size + 
-    //                  noffH.initData.size + 
-    //                  noffH.readonlyData.size;
+    // --------- Load the code segment into the buffer ---------
+    int actualSegmentSize = noffH.code.size + noffH.initData.size + noffH.readonlyData.size;
+    char *buffer = new char[actualSegmentSize];
+    bzero(buffer, actualSegmentSize);
 
-    // char* buffer = new char[actualDataSize];
-    // bzero(buffer, actualDataSize);
+    if (noffH.code.size > 0){
+        executable->ReadAt(
+            buffer + noffH.code.virtualAddr,
+            noffH.code.size,
+            noffH.code.inFileAddr
+        );
+    }
 
-    DEBUG(dbgAddr, "NoffH code informaton: " << noffH.code.size << " " << noffH.code.virtualAddr << " " << noffH.code.inFileAddr);
-    DEBUG(dbgAddr, "NoffH init informaton: " << noffH.initData.size << " " << noffH.initData.virtualAddr << " " << noffH.initData.inFileAddr);
-    DEBUG(dbgAddr, "NoffH readonly informaton: " << noffH.readonlyData.size << " " << noffH.readonlyData.virtualAddr << " " << noffH.readonlyData.inFileAddr);
-    DEBUG(dbgAddr, "NoffH uninit informaton: " << noffH.uninitData.size << " " << noffH.uninitData.virtualAddr << " " << noffH.uninitData.inFileAddr);
+    if (noffH.initData.size > 0){
+        executable->ReadAt(
+            buffer + noffH.initData.virtualAddr,
+            noffH.initData.size,
+            noffH.initData.inFileAddr
+        );
+    }
+
+    if (noffH.readonlyData.size > 0){
+        executable->ReadAt(
+            buffer + noffH.readonlyData.virtualAddr,
+            noffH.readonlyData.size,
+            noffH.readonlyData.inFileAddr
+        );
+    }
 
 
+    // --------- Copy the buffer into the memory ---------
+    int actualPages = divRoundUp(actualSegmentSize, PageSize);
+    for (int i = 0; i < actualPages; i++) {
+        int offset = i * PageSize;
+        int size = PageSize;
+        if (offset + size > actualSegmentSize) {
+            size = actualSegmentSize - offset;
+        }
+        int vpn = (noffH.code.virtualAddr + offset) / PageSize;
+        int paddr = pageTable[vpn].physicalPage * PageSize;
+        bcopy(buffer + offset, main_mem + paddr, size);
+    }
 
-
+    // --------- Unlock the address space ---------
     kernel->addrLock->V();
     delete[] buffer;
     delete executable;			// close file

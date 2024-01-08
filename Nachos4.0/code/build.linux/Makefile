@@ -1,4 +1,4 @@
-# Copyright (c) 1992-1996 The Regents of the University of California.
+	# Copyright (c) 1992-1996 The Regents of the University of California.
 # All rights reserved.  See copyright.h for copyright notice and limitation 
 # of liability and disclaimer of warranty provisions.
 #
@@ -200,7 +200,7 @@ DEFINES =  -DFILESYS_STUB -DRDATA -DSIM_FIX
 # break the thread system.  You might want to use -fno-inline if
 # you need to call some inline functions from the debugger.
 
-CFLAGS = -g -Wall $(INCPATH) $(DEFINES) $(HOSTCFLAGS) -DCHANGED -m32
+CFLAGS = -g -w $(INCPATH) $(DEFINES) $(HOSTCFLAGS) -DCHANGED -m32
 LDFLAGS = -m32
 CPP_AS_FLAGS= -m32
 
@@ -275,6 +275,7 @@ THREAD_H = ../threads/alarm.h\
 	../threads/ptable.h\
 	../threads/sem.h\
 	../threads/stable.h
+
 
 THREAD_C = ../threads/alarm.cc\
 	../threads/kernel.cc\

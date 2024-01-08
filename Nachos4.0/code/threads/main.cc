@@ -43,14 +43,13 @@
 
 #include "main.h"
 #include "filesys.h"
+#include "machine.h"
 #include "openfile.h"
 #include "sysdep.h"
 
 // global variables
 Kernel *kernel;
 Debug *debug;
-
-
 //----------------------------------------------------------------------
 // Cleanup
 //	Delete kernel data structures; called when user hits "ctl-C".
@@ -285,6 +284,7 @@ main(int argc, char **argv)
 
     // finally, run an initial user program if requested to do so
     if (userProgName != NULL) {
+        kernel->pTab->LoadMainThread(userProgName, kernel->currentThread);
       AddrSpace *space = new AddrSpace;
       ASSERT(space != (AddrSpace *)NULL);
       if (space->Load(userProgName)) {  // load the program into the space
