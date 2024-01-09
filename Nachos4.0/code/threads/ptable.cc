@@ -89,7 +89,6 @@ int PTable::ExecUpdate(char *fileName)
 
     // // Prevent self-execution
     int currentThreadId = GetCurrentThreadId();
-    DEBUG(dbgSys, "PTable: Current thread id " << currentThreadId);
 
     if (strcmp(pcb[currentThreadId]->GetFileName(), fileName) == 0) {
         fprintf(stderr, "PTable: Cannot exec self.\n");
@@ -108,7 +107,6 @@ int PTable::ExecUpdate(char *fileName)
         return -1;
     }
 
-    DEBUG(dbgSys, "PTable: Free slot " << freeSlot << " allocated.");
 
     pcb[freeSlot] = new PCB(freeSlot);
 

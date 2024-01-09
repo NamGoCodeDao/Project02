@@ -107,6 +107,7 @@ int PCB::Exec(char *fileName, int pid)
     DEBUG(dbgSys, "PCB: Thread with name " << _file << " is forking." << endl);
     _thread->Fork(RunProcess, (void*)_file);
     mutex->V();
+    DEBUG(dbgSys, "PCB: Completed Exec file " << fileName << "\n");
     return _pid;
 }
 
