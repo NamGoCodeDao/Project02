@@ -183,7 +183,11 @@ fileclient: fileclient.o start.o
 	$(COFF2NOFF) fileclient.coff fileclient
 
 
-
+Multiprogramming.o: Multiprogramming.c
+	$(CC) $(CFLAGS) -c Multiprogramming.c
+Multiprogramming: Multiprogramming.o start.o
+	$(LD) $(LDFLAGS) start.o Multiprogramming.o -o Multiprogramming.coff
+	$(COFF2NOFF) Multiprogramming.coff Multiprogramming
 
 
 

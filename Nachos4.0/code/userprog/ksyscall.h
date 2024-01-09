@@ -13,7 +13,7 @@
 
 #include "FileDescriptors.h"
 #include "synchconsole.h"
-
+#include  "ptable.h"
 Table table;
 
 void SysHalt()
@@ -311,7 +311,6 @@ int SysWrite(int virtAddr, int size, OpenFileId id)
     result = table.GetFileDescriptor(id)->Write(buffer, size);
     DEBUG(dbgSys, "\n Finish writing to file with " << result << " characters");
   }
-
   DEBUG(dbgSys, "\n Write buffer to user space");
   System2User(virtAddr, size, buffer);
   delete[] buffer;
@@ -381,4 +380,126 @@ int SysCloseSocket(int socketid)
     result = table.Close_Socket(socketid);
     return result;
 }
+SpaceId SysExec(int virtAddr)
+{
+     char *exec_name;
+     exec_name = User2System(virtAddr, MaxFileLength);
+     DEBUG(dbgSys, "\n Reading virtual address of exec file");
+     SpaceId result = -1;
+     if (exec_name == NULL || strlen(exec_name) == 0)
+     {
+         DEBUG(dbgSys, "\n Filename is not valid");
+         return -1;
+     }
+     else {
+         DEBUG(dbgSys, "\n Finish reading exec file.");
+         DEBUG(dbgSys, "\n Exec file : '" << exec_name << "'");
+         result = kernel->pTab->ExecUpdate(exec_name);
+         if (result == -1) {
+             DEBUG(dbgSys, "\n Error exec file '" << exec_name << "'");
+         } else {
+             DEBUG(dbgSys, "\n Exec file '" << exec_name << "' successfully");
+         }
+     }
+     return result;
+}
+
+int SysJoin(SpaceId id)
+{
+    int result = -1;
+    result = kernel->pTab->JoinUpdate(id);
+    return result;
+}
+void SysExit(int status)
+{
+    int result;
+    result=kernel->pTab->ExitUpdate(status);
+}
+
+int SysCreateSemaphore(int virtAddr, int semval)
+{
+    int result = -1;
+    char *name;
+    name = User2System(virtAddr, MaxFileLength);
+    if (name == NULL || strlen(name) == 0)
+    {
+        DEBUG(dbgSys, "\n Semaphore name is not valid");
+        return -1;
+    }
+    else
+    {
+        DEBUG(dbgSys, "\n Finish reading semaphore name.");
+        DEBUG(dbgSys, "\n Semaphore name : '" << name << "'");
+        result = kernel->semTab->Create(name, semval);
+        if (result=-1)
+        {
+            DEBUG(dbgSys, "\n Error create semaphore '" << name << "'");
+        }
+        else
+        {
+            DEBUG(dbgSys, "\n Create semaphore '" << name << "' successfully");
+
+        }
+    }
+    return result;
+}
+
+int SysWait(int virtAddr)
+{
+    int result=-1;
+    char *name;
+    name=User2System(virtAddr, MaxFileLength);
+    if (name==NULL)
+    {
+        DEBUG(dbgSys, "\n Semaphore name is not valid");
+        return -1;
+    }
+    else
+    {
+        DEBUG(dbgSys, "\n Finish reading semaphore name.");
+        DEBUG(dbgSys, "\n Semaphore name : '" << name << "'");
+        result=kernel->semTab->Wait(name);
+
+        //Error
+        if (result==-1)
+        {
+            DEBUG(dbgSys, "\n Error wait semaphore '" << name << "'");
+        }
+        else
+        {
+            DEBUG(dbgSys, "\n Wait semaphore '" << name << "' successfully");
+        }
+    }
+    delete[] name;
+    return result;
+}
+int SysSignal(int virtAddr) {
+    int result = -1;
+    char *name;
+    name=User2System(virtAddr, MaxFileLength);
+    if (name==NULL)
+    {
+        DEBUG(dbgSys, "\n Semaphore name is not valid");
+        return -1;
+    }
+    else
+    {
+        DEBUG(dbgSys, "\n Finish reading semaphore name.");
+        DEBUG(dbgSys, "\n Semaphore name : '" << name << "'");
+        result=kernel->semTab->Signal(name);
+
+        //Error
+        if (result==-1)
+        {
+            DEBUG(dbgSys, "\n Error signal semaphore '" << name << "'");
+        }
+        else
+        {
+            DEBUG(dbgSys, "\n Signal semaphore '" << name << "' successfully");
+        }
+    }
+    delete[] name;
+    return result;
+}
+
 #endif /* ! __USERPROG_KSYSCALL_H__ */
