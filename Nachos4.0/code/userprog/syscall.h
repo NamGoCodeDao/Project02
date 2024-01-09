@@ -39,8 +39,11 @@
 #define SC_Send        18
 #define SC_Receive        19
 #define SC_CloseSocket        20
-#define SC_Add		42
+#define SC_CreateSemaphore 21
+#define SC_Wait 22
+#define SC_Signal 23
 
+#define SC_Add		42
 /* define some constants for convenience */
 #define MaxFileLength 32
 #define consoleInputID 0
@@ -95,7 +98,25 @@ SpaceId ExecV(int argc, char* argv[]);
  * Return the exit status.
  */
 int Join(SpaceId id); 	
- 
+
+/*
+ * Creates a new semaphore with the given name and initial value.
+ * Returns the semaphore ID.
+ */
+int CreateSemaphore(char *name, int semval);
+
+/*
+ * Waits for the semaphore with the given ID.
+ */
+
+int Wait(char *name);
+
+/*
+ * Signals the semaphore with the given ID.
+ */
+
+int Signal(char *name);
+
 
 /* File system operations: Create, Remove, Open, Read, Write, Close
  * These functions are patterned after UNIX -- files represent
@@ -181,6 +202,12 @@ int ThreadJoin(ThreadId id);
  * Deletes current thread and returns ExitCode to every waiting lokal thread.
  */
 void ThreadExit(int ExitCode);	
+
+
+
+
+
+
 
 /*
  * Creates a new socket and returns its ID.

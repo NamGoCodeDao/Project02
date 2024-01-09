@@ -87,14 +87,14 @@ void ExceptionHandler(ExceptionType which) {
 			
         case SyscallException:
             switch (type) {
-                case SC_Halt:
-                    DEBUG(dbgSys, "Shutdown, initiated by user program.\n");
+                case SC_Halt: {
+					DEBUG(dbgSys, "Shutdown, initiated by user program.\n");
 
-                    SysHalt();
+					SysHalt();
 
-                    ASSERTNOTREACHED();
-                    break;
-
+					ASSERTNOTREACHED();
+					break;
+				}
                 case SC_Create: {
                     int result;
 
@@ -274,11 +274,85 @@ void ExceptionHandler(ExceptionType which) {
 			ASSERTNOTREACHED();
 			break;
 		}
+
+		case SC_Exec:
+		{
+			int result;
+			DEBUG(dbgSys, "\n SC_Exec call ...");
+			result = SysExec((int)kernel->machine->ReadRegister(4));
+			DEBUG(dbgSys, "SysExec returning with " << result << "\n");
+			kernel->machine->WriteRegister(2, (int)result);
+			IncreasePC();
+			return;
+			ASSERTNOTREACHED();
+			break;
+		}
+
+		case SC_Join:
+		{
+			int result;
+			DEBUG(dbgSys, "\n SC_Join call ...");
+			result = SysJoin((int)kernel->machine->ReadRegister(4));
+			DEBUG(dbgSys, "SysJoin returning with " << result << "\n");
+			kernel->machine->WriteRegister(2, (int)result);
+			IncreasePC();
+			return;
+			ASSERTNOTREACHED();
+			break;
+		}
+
+		case SC_Exit:
+		{
+			DEBUG(dbgSys, "\n SC_Exit call ...");
+			SysExit((int)kernel->machine->ReadRegister(4));
+			IncreasePC();
+			return;
+			ASSERTNOTREACHED();
+			break;
+		}
+		case SC_CreateSemaphore:
+		{
+			int result;
+			DEBUG(dbgSys, "\n SC_CreateSemaphore call ...");
+			result = SysCreateSemaphore((int)kernel->machine->ReadRegister(4), (int)kernel->machine->ReadRegister(5));
+			DEBUG(dbgSys, "SysCreateSemaphore returning with " << result << "\n");
+			kernel->machine->WriteRegister(2, (int)result);
+			IncreasePC();
+			return;
+			ASSERTNOTREACHED();
+			break;
+		}
+
+		case SC_Wait:
+		{
+			int result;
+			DEBUG(dbgSys, "\n SC_Wait call ...");
+			result = SysWait((int)kernel->machine->ReadRegister(4));
+			DEBUG(dbgSys, "SysWait returning with " << result << "\n");
+			kernel->machine->WriteRegister(2, (int)result);
+			IncreasePC();
+			return;
+			ASSERTNOTREACHED();
+			break;
+		}
+
+		case SC_Signal:
+		{
+			int result;
+			DEBUG(dbgSys, "\n SC_Signal call ...");
+			result = SysSignal((int)kernel->machine->ReadRegister(4));
+			DEBUG(dbgSys, "SysSignal returning with " << result << "\n");
+			kernel->machine->WriteRegister(2, (int)result);
+			IncreasePC();
+			return;
+			ASSERTNOTREACHED();
+			
+			break;
+		}
 		default:
 			cerr << "Unexpected system call " << type << "\n";
 			break;
 		}
-		break;
 	default:
 		cerr << "Unexpected user mode exception" << (int)which << "\n";
 		break;
