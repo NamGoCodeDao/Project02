@@ -4,6 +4,7 @@
 
 PTable::PTable(int size)
 {
+    DEBUG(dbgSys, "Initializing Process Table...");
     psize = size;
     bm = new Bitmap(psize);
     bmsem = new Semaphore("bmsem", 1);
@@ -62,7 +63,8 @@ void PTable::LoadMainThread(char *name, Thread *thread)
 int PTable::GetCurrentThreadId()
 {
     int currentThreadId = -1;
-    if (strcmp(kernel->currentThread->getName(), "main") != 0)
+    DEBUG(dbgSys, "PTable: Current thread name " << kernel->currentThread->getName());
+    if (strcmp(kernel->currentThread->getName(), "main") == 0)
     {
         currentThreadId = 0;
     }
@@ -81,16 +83,21 @@ int PTable::GetCurrentThreadId()
 }
 
 int PTable::ExecUpdate(char *fileName)
-{
+{   
+    DEBUG(dbgSys, "PTable: ExecUpdate " << fileName);
     bmsem->P();
 
     // // Prevent self-execution
     int currentThreadId = GetCurrentThreadId();
+    DEBUG(dbgSys, "PTable: Current thread id " << currentThreadId);
+
     if (strcmp(pcb[currentThreadId]->GetFileName(), fileName) == 0) {
         fprintf(stderr, "PTable: Cannot exec self.\n");
         bmsem->V();
         return -1;
     }
+    DEBUG(dbgSys, "PTable: ExecUpdate " << fileName << " from thread with name " << pcb[currentThreadId]->GetFileName());
+    
 
     // Allocate a new PCB
     int freeSlot = GetFreeSlot();
@@ -100,6 +107,8 @@ int PTable::ExecUpdate(char *fileName)
         bmsem->V();
         return -1;
     }
+
+    DEBUG(dbgSys, "PTable: Free slot " << freeSlot << " allocated.");
 
     pcb[freeSlot] = new PCB(freeSlot);
 

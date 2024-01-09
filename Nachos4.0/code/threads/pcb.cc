@@ -96,7 +96,7 @@ static void RunProcess(void *args)
 int PCB::Exec(char *fileName, int pid)
 {
     mutex->P();
-    DEBUG(dbgThread, "PCB: Setting things up for " << fileName << "...");
+    DEBUG(dbgSys, "PCB: Process with name " << fileName << " and pid " << pid << " is created.");
 
     _pid = pid;
 
@@ -104,6 +104,7 @@ int PCB::Exec(char *fileName, int pid)
     strcpy(_file, fileName);
 
     _thread = new Thread(_file);
+    DEBUG(dbgSys, "PCB: Thread with name " << _file << " is forking." << endl);
     _thread->Fork(RunProcess, (void*)_file);
     mutex->V();
     return _pid;

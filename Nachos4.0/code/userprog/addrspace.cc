@@ -203,8 +203,7 @@ AddrSpace::Load(char *fileName)
         if (offset + size > actualSegmentSize) {
             size = actualSegmentSize - offset;
         }
-        int vpn = (noffH.code.virtualAddr + offset) / PageSize;
-        int paddr = pageTable[vpn].physicalPage * PageSize;
+        int paddr = pageTable[i].physicalPage * PageSize;
         bcopy(buffer + offset, main_mem + paddr, size);
     }
 

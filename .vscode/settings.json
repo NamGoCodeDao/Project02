@@ -2,5 +2,9 @@
     "cSpell.words": [
         "Noff",
         "NOFFMAGIC"
-    ]
+    ],
+    "files.associations": {
+        "*.txt": "c",
+        "syscall.h": "c"
+    }
 }
