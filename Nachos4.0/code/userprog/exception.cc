@@ -58,7 +58,6 @@ void ExceptionHandler(ExceptionType which) {
 			return;
 		case PageFaultException:
 			printf("Page Fault Exception in thread %s\n", kernel->currentThread->getName());
-			// End the thread
 			SysHalt();
 			break;
 		case ReadOnlyException:

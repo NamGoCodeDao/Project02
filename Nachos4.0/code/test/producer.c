@@ -26,9 +26,10 @@ int main()
 
         //Count number of current items
         Seek(0, file_id);
+        num_item = 0;
         while (Read(&c, 1, file_id) > 0)
         {
-            if (c != '\0' && c >= '0' && c <= '9'){
+            if (c != 'e' && c >= '0' && c <= '9'){
                 list_items[num_item] = c;
                 num_item++;
             }
@@ -38,33 +39,42 @@ int main()
         if (num_item>= MAX_ITEMS)
         {
             //Thong bao day
-            Write("Producer: Buffer is full\n", 25, consoleOutputID);
+            //Write("Producer: Buffer is full\n", 25, consoleOutputID);
 
             //Dong file
             Close(file_id);
 
+            Signal("empty");
             //Unlock file items.txt
             Signal("accessItem");
-            return 0;
         }
+        else
+        {
+            //Lay thong tin item cuoi cung
+            last_item=list_items[num_item-1];
 
-        //Lay thong tin item cuoi cung
-        last_item=list_items[num_item-1];
+            //Thong bao san sang
+            //Write("Producer: Producing item\n", 25, consoleOutputID);
 
-        //Thong bao san sang
-        Write("Producer: Producing item\n", 25, consoleOutputID);
+            new_item = last_item+ 1;
+            if (new_item > '9')
+                new_item = '0';
+            Write("Produce:",8,consoleOutputID);
+            Write(&new_item,1,consoleOutputID);
+            Write('\n',1,consoleOutputID);
+            Close(file_id);
+            Remove("items.txt");
+            Create("items.txt");
+            file_id = Open("items.txt",ReadAndWrite);
+            list_items[num_item++] = new_item;
+            list_items[num_item++] = 'e';
 
-        new_item = last_item+ 1;
-        if (new_item > '9')
-            new_item = '0';
-        
-        Seek(-1, file_id);
-        Write(&new_item, 1, file_id);
-
-        Close(file_id);
-        //Unlock file items.txt
-        Signal("accessItem");
-        Signal("empty");
+            Write(list_items, num_item, file_id);
+            Close(file_id);
+            //Unlock file items.txt
+            Signal("accessItem");
+            Signal("empty");
+        }
     }
     return 0;
 }

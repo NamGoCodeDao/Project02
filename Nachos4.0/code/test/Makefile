@@ -113,7 +113,7 @@ PROGRAMS = unknownhost
 else
 # change this if you create a new test program!
 #PROGRAMS = add halt shell matmult sort segments
-PROGRAMS = halt createfile cat delete copy concatenate echoclient fileclient
+PROGRAMS = halt createfile cat delete copy concatenate echoclient fileclient printstring join testprogram producer consumer main
 endif
 
 all: $(PROGRAMS)

@@ -11,13 +11,9 @@ int main()
     int num_new=0;
     while (1)
     {
-        i=0;
-        item[0] = '\0';
-        //Dam bao chi su dung item khi co trong items
-        Wait("empty");
 
         //Lock quyen truy cap vao items
-        Wait("accessItems");
+        Wait("accessItem");
 
         //Mo file items
         file_id= Open("items.txt", OnlyRead);
@@ -26,29 +22,29 @@ int main()
 
         //Lay 1 item ra khoi items
         used_item = item[0];
-
-        //Thong bao da lay item ra khoi items
-        //Write("Consumer: Using item \n", 22, consoleOutputID);
-        //Write(&used_item, 1, consoleOutputID);
-        //Xoa item vua lay ra khoi items
+        Write("Consume:",8,consoleOutputID);
         Write(&used_item, 1, consoleOutputID);
-        while (item[i+1] != '\0')
+        i=0;
+        while (item[i] != 'e')
         {
-            item[i] = item[i + 1]; 
+            item[i] = item[i + 1];
             i++;
         }
-        num_new = i-1;
-
-
-        Close(file_id);
-        Remove("items.txt");
-        Create("items.txt");
-        file_id = Open("items.txt", ReadAndWrite);
-        Write(item, num_new, file_id);
-        Close(file_id);
-
-
+        num_new = i;
+        if (num_new==1)
+        {
+            Wait("empty");
+        }
+        else
+        {
+            Close(file_id);
+            Remove("items.txt");
+            Create("items.txt");
+            file_id = Open("items.txt", ReadAndWrite);
+            Write(item, num_new, file_id);
+            Close(file_id);
+        }
         //Unlock quyen truy cap vao items
-        Signal("accessItems");
+        Signal("accessItem");
     }
 }
