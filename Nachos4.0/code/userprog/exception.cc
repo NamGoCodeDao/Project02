@@ -57,7 +57,8 @@ void ExceptionHandler(ExceptionType which) {
 		case NoException:
 			return;
 		case PageFaultException:
-			DEBUG(dbgAddr, "Page Fault Exception, No valid translation found\n");
+			printf("Page Fault Exception in thread %s\n", kernel->currentThread->getName());
+			// End the thread
 			SysHalt();
 			break;
 		case ReadOnlyException:
@@ -90,7 +91,7 @@ void ExceptionHandler(ExceptionType which) {
                 case SC_Halt: {
 					DEBUG(dbgSys, "Shutdown, initiated by user program.\n");
 
-					SysHalt();
+					SysExit(0);
 
 					ASSERTNOTREACHED();
 					break;
@@ -303,8 +304,11 @@ void ExceptionHandler(ExceptionType which) {
 
 		case SC_Exit:
 		{
+			int result;
 			DEBUG(dbgSys, "\n SC_Exit call ...");
-			SysExit((int)kernel->machine->ReadRegister(4));
+			result = SysExit((int)kernel->machine->ReadRegister(4));
+			DEBUG(dbgSys, "SysExit returning with " << result << "\n");
+			kernel->machine->WriteRegister(2, (int)result);
 			IncreasePC();
 			return;
 			ASSERTNOTREACHED();
@@ -349,6 +353,19 @@ void ExceptionHandler(ExceptionType which) {
 			
 			break;
 		}
+		// case SC_ExecV:
+		// {
+		// 	int result;
+		// 	DEBUG(dbgSys, "\n SC_ExecV call ...");
+		// 	result = SysExecV((int)kernel->machine->ReadRegister(4), (int)kernel->machine->ReadRegister(5));
+		// 	DEBUG(dbgSys, "SysExecV returning with " << result << "\n");
+		// 	kernel->machine->WriteRegister(2, (int)result);
+		// 	IncreasePC();
+		// 	return;
+		// 	ASSERTNOTREACHED();
+
+		// 	break;
+		// }
 		default:
 			cerr << "Unexpected system call " << type << "\n";
 			break;

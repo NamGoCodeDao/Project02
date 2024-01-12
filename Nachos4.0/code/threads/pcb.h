@@ -38,7 +38,6 @@ public:
     void DecNumWait(); // Decrease the number of the waiting process
     void SetExitCode(int); // Set the exit code for the process
     int GetExitCode(); // Return the exitcode
-    void SetFileName(char *); // Set the process name
     char *GetFileName(); // Return the process name
 };
 

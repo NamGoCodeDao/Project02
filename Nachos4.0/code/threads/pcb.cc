@@ -37,11 +37,11 @@ PCB::PCB(char* fileName, Thread* thread)
 
 PCB::~PCB()
 {
-    delete _file;
-    // if (_thread != NULL){
-    //     _thread->Finish();
-    //     delete _thread;
-    // }
+    // delete _file;
+    if (_thread != NULL){
+        _thread->Finish();
+        delete _thread;
+    }
     delete joinsem;
     delete exitsem;
     delete mutex;
@@ -86,6 +86,7 @@ void PCB::DecNumWait()
 static void RunProcess(void *args)
 {
     char *filename = (char*)args;
+    DEBUG(dbgThread, "PCB: Starting process " << filename);
     AddrSpace *space = new AddrSpace;
     if (space->Load(filename)) {
         space->Execute();
@@ -96,47 +97,55 @@ static void RunProcess(void *args)
 int PCB::Exec(char *fileName, int pid)
 {
     mutex->P();
-    DEBUG(dbgSys, "PCB: Process with name " << fileName << " and pid " << pid << " is created.");
+    DEBUG(dbgThread, "PCB: Process with name " << fileName << " and pid " << pid << " is created.");
 
-    _pid = pid;
-
+     _pid = pid;
     _file = new char[strlen(fileName)];
     strcpy(_file, fileName);
-
     _thread = new Thread(_file);
-    DEBUG(dbgSys, "PCB: Thread with name " << _file << " is forking." << endl);
-    _thread->Fork(RunProcess, (void*)_file);
+    if (_thread == NULL)
+    {
+        printf("PCB: Not enough memory to create new thread\n");
+        mutex->V();
+        return -1;
+    }
+
+
+
+    DEBUG(dbgThread, "PCB: Thread with name " << _file << " is forking." << endl);
+    _thread->Fork(RunProcess, _file);
+
     mutex->V();
-    DEBUG(dbgSys, "PCB: Completed Exec file " << fileName << "\n");
+    DEBUG(dbgThread, "PCB: Completed Exec file " << fileName << "\n");
     return _pid;
 }
 
 void PCB::JoinWait()
 {
+    DEBUG(dbgThread, "PCB: Process with name " << _file << " is waiting for joinsem.");
     joinsem->P();
 }
 
 void PCB::ExitWait()
 {
+    DEBUG(dbgThread, "PCB: Process with name " << _file << " is waiting for exitsem.");
     exitsem->P();
 }
 
 void PCB::JoinRelease()
 {
     joinsem->V();
+    DEBUG(dbgThread, "PCB: Process with name " << _file << " is released from joinsem.");
 }
 
 void PCB::ExitRelease()
 {
     exitsem->V();
+    DEBUG(dbgThread, "PCB: Process with name " << _file << " is released from exitsem.");
 }
 
 
-void PCB::SetFileName(char * filename){
-    if (_file != NULL) delete _file;
-    _file = new char[strlen(filename)];
-    strcpy(_file, filename);
-}
+
 char* PCB::GetFileName(){
     return _file;
 }

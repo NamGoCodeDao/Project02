@@ -15,6 +15,7 @@
 
 #include "copyright.h"
 #include "errno.h"
+
 /* system call codes -- used by the stubs to tell the kernel which system call
  * is being asked for
  */
@@ -77,6 +78,7 @@ int Add(int op1, int op2);
 /* This user program is done (status = 0 means exited normally). */
 void Exit(int status);	
 
+
 /* A unique identifier for an executing user program (address space) */
 typedef int SpaceId;	
 
@@ -98,6 +100,7 @@ SpaceId ExecV(int argc, char* argv[]);
  * Return the exit status.
  */
 int Join(SpaceId id); 	
+
 
 /*
  * Creates a new semaphore with the given name and initial value.

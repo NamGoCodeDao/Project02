@@ -30,6 +30,7 @@ int main()
             Write("Tao file khong thanh cong\n", 100, consoleOutputID);
         }
     }
-    Halt();
-    return 0;
+    Exit(0);
+    // Halt();
+    // return 0;
 }

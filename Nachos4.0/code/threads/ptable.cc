@@ -4,7 +4,7 @@
 
 PTable::PTable(int size)
 {
-    DEBUG(dbgSys, "Initializing Process Table...");
+    DEBUG(dbgThread, "Initializing Process Table...");
     psize = size;
     bm = new Bitmap(psize);
     bmsem = new Semaphore("bmsem", 1);
@@ -63,7 +63,7 @@ void PTable::LoadMainThread(char *name, Thread *thread)
 int PTable::GetCurrentThreadId()
 {
     int currentThreadId = -1;
-    DEBUG(dbgSys, "PTable: Current thread name " << kernel->currentThread->getName());
+    DEBUG(dbgThread, "PTable: Current thread name " << kernel->currentThread->getName());
     if (strcmp(kernel->currentThread->getName(), "main") == 0)
     {
         currentThreadId = 0;
@@ -72,7 +72,8 @@ int PTable::GetCurrentThreadId()
     {
         for (int i = 1; i < MAX_PROCESS; ++i)
         {
-            if (pcb[i] != NULL && strcmp(pcb[i]->GetFileName(), kernel->currentThread->getName()) == 0)
+            if (pcb[i] != NULL && 
+            strcmp(pcb[i]->GetFileName(), kernel->currentThread->getName()) == 0)
             {
                 currentThreadId = i;
                 break;
@@ -82,27 +83,46 @@ int PTable::GetCurrentThreadId()
     return currentThreadId;
 }
 
-int PTable::ExecUpdate(char *fileName)
+int PTable::ExecUpdate(char *name)
 {   
-    DEBUG(dbgSys, "PTable: ExecUpdate " << fileName);
     bmsem->P();
 
-    // // Prevent self-execution
-    int currentThreadId = GetCurrentThreadId();
-
-    if (strcmp(pcb[currentThreadId]->GetFileName(), fileName) == 0) {
-        fprintf(stderr, "PTable: Cannot exec self.\n");
+    // check the validity of the program name
+    if (name == NULL)
+    {
+        printf("PTable: Invalid program name\n");
         bmsem->V();
         return -1;
     }
-    DEBUG(dbgSys, "PTable: ExecUpdate " << fileName << " from thread with name " << pcb[currentThreadId]->GetFileName());
+
+    // Check if the file exists
+    OpenFile *executable = kernel->fileSystem->Open(name);
+    if (executable == NULL)
+    {
+        printf("PTable: Unable to open file %s\n", name);
+        bmsem->V();
+        return -1;
+    }
+    delete executable;
+
+
+    int currentThreadId = GetCurrentThreadId();
+
+    // Make sure this program is not called Exec itself.
+    if (strcmp(pcb[currentThreadId]->GetFileName(), name) == 0) {
+        printf("PTable: Cannot exec self.\n");
+        bmsem->V();
+        return -1;
+    }
+
+    DEBUG(dbgThread, "PTable: ExecUpdate " << name << " from thread with name " << pcb[currentThreadId]->GetFileName());
     
 
     // Allocate a new PCB
     int freeSlot = GetFreeSlot();
     if (freeSlot == -1)
     {
-        fprintf(stderr, "PTable: No free slot available.\n");
+        printf("PTable: No free slot available.\n");
         bmsem->V();
         return -1;
     }
@@ -114,7 +134,17 @@ int PTable::ExecUpdate(char *fileName)
     pcb[freeSlot]->parentID = currentThreadId;
 
     // Load the executable file
-    int result = pcb[freeSlot]->Exec(fileName, freeSlot);
+    int result = pcb[freeSlot]->Exec(name, freeSlot);
+
+    if (result == -1)
+    {
+        printf("PTable: Unable to load executable file %s\n", name);
+        delete pcb[freeSlot];
+        pcb[freeSlot] = NULL;
+        bmsem->V();
+        return -1;
+    }
+
     psize++;
     bmsem->V();
     return result;
@@ -126,18 +156,18 @@ int PTable::JoinUpdate(int id)
 
     if (!IsExist(id))
     {
-        fprintf(stderr, "PTable: Process with id %d does not exist\n", id);
+        printf("PTable: Process with id %d does not exist\n", id);
         return -1;
     }
 
     if (id == currentThreadId)
     {
-        fprintf(stderr, "PTable: Cannot join self\n");
+        printf("PTable: Cannot join self\n");
         return -1;
     }
     else if (pcb[id]->parentID != currentThreadId)
     {
-        fprintf(stderr, "PTable: Process with id %d is not a child of current process\n", id);
+        printf("PTable: Process with id %d is not a child of current process\n", id);
         return -1;
     }
 
@@ -155,6 +185,7 @@ int PTable::ExitUpdate(int exitcode)
     int currentThreadId = GetCurrentThreadId();
     if (currentThreadId == 0)
     {
+        DEBUG(dbgThread, "PTable: Main thread is exiting");
         kernel->interrupt->Halt();
     }
     else
@@ -164,4 +195,5 @@ int PTable::ExitUpdate(int exitcode)
         pcb[currentThreadId]->ExitWait();
         Remove(currentThreadId);
     }
+    return exitcode;
 }

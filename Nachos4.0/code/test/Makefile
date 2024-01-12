@@ -127,6 +127,18 @@ halt: halt.o start.o
 	$(LD) $(LDFLAGS) start.o halt.o -o halt.coff
 	$(COFF2NOFF) halt.coff halt
 
+printstring.o: printstring.c
+	$(CC) $(CFLAGS) -c printstring.c
+printstring: printstring.o start.o
+	$(LD) $(LDFLAGS) start.o printstring.o -o printstring.coff
+	$(COFF2NOFF) printstring.coff printstring
+
+join.o: join.c
+	$(CC) $(CFLAGS) -c join.c
+join: join.o start.o
+	$(LD) $(LDFLAGS) start.o join.o -o join.coff
+	$(COFF2NOFF) join.coff join
+
 createfile.o: createfile.c
 	$(CC) $(CFLAGS) -c createfile.c
 
@@ -134,6 +146,29 @@ createfile: createfile.o start.o
 	$(LD) $(LDFLAGS) start.o createfile.o -o createfile.coff
 	$(COFF2NOFF) createfile.coff createfile
 
+testprogram.o: testprogram.c
+	$(CC) $(CFLAGS) -c testprogram.c
+testprogram: testprogram.o start.o
+	$(LD) $(LDFLAGS) start.o testprogram.o -o testprogram.coff
+	$(COFF2NOFF) testprogram.coff testprogram
+
+consumer.o: consumer.c
+	$(CC) $(CFLAGS) -c consumer.c
+consumer: consumer.o start.o
+	$(LD) $(LDFLAGS) start.o consumer.o -o consumer.coff
+	$(COFF2NOFF) consumer.coff consumer
+
+producer.o: producer.c
+	$(CC) $(CFLAGS) -c producer.c
+producer: producer.o start.o
+	$(LD) $(LDFLAGS) start.o producer.o -o producer.coff
+	$(COFF2NOFF) producer.coff producer
+
+main.o: main.c
+	$(CC) $(CFLAGS) -c main.c
+main: main.o start.o
+	$(LD) $(LDFLAGS) start.o main.o -o main.coff
+	$(COFF2NOFF) main.coff main
 
 cat.o: cat.c
 	$(CC) $(CFLAGS) -c cat.c

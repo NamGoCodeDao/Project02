@@ -16,7 +16,7 @@ int main(int argc, char** argv)
     {
         Write("Xoa file that bai\n", 100, consoleOutputID);
     }
-
-    Halt();
-    return 0;
+    Exit(0);   
+    // Halt();
+    // return 0;
 }

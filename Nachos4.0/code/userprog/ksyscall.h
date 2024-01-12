@@ -403,6 +403,38 @@ SpaceId SysExec(int virtAddr)
      }
      return result;
 }
+// SpaceId SysExecV(int argc, int virtAddr)
+// {
+//     char **argv;
+//     argv = new char*[argc];
+//     for (int i = 0; i < argc; i++)
+//     {
+//         argv[i] = new char[MaxFileLength];
+//     }
+//     for (int i = 0; i < argc; i++)
+//     {
+//         int virtAddr_i = virtAddr + i * MaxFileLength;
+//         argv[i] = User2System(virtAddr_i, MaxFileLength);
+//     }
+//     DEBUG(dbgSys, "\n Reading virtual address of exec file");
+//     SpaceId result = -1;
+//     if (argv == NULL || strlen(argv[0]) == 0)
+//     {
+//         DEBUG(dbgSys, "\n Filename is not valid");
+//         return -1;
+//     }
+//     else {
+//         DEBUG(dbgSys, "\n Finish reading exec file.");
+//         DEBUG(dbgSys, "\n Exec file : '" << argv[0] << "'");
+//         result = kernel->pTab->ExecUpdate(argv[0]);
+//         if (result == -1) {
+//             DEBUG(dbgSys, "\n Error exec file '" << argv[0] << "'");
+//         } else {
+//             DEBUG(dbgSys, "\n Exec file '" << argv[0] << "' successfully");
+//         }
+//     }
+//     return result;
+// }
 
 int SysJoin(SpaceId id)
 {
@@ -410,10 +442,12 @@ int SysJoin(SpaceId id)
     result = kernel->pTab->JoinUpdate(id);
     return result;
 }
-void SysExit(int status)
+int SysExit(int status)
 {
     int result;
+    DEBUG(dbgSys, "\n Exit with status " << status);
     result=kernel->pTab->ExitUpdate(status);
+    return result;
 }
 
 int SysCreateSemaphore(int virtAddr, int semval)
