@@ -7,10 +7,9 @@ int main()
    CreateSemaphore("accessItem", 1);
 
 
-
    //Create semaphore to control empty items
-    CreateSemaphore("empty", MAX_ITEMS);
-
+    CreateSemaphore("empty", 0);
+    CreateSemaphore("full", MAX_ITEMS);
 
 
 
@@ -23,7 +22,5 @@ int main()
    //Join producer and consumer
    Join(consumerID);
    Join(producerID);
-
-
     return 0;
 }
